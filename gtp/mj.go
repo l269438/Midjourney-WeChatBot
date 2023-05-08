@@ -18,16 +18,21 @@ type requestImg struct {
 	IsAgent         bool   `json:"isAgent"`
 }
 
+type Request struct {
+	Action string `json:"action"`
+	Prompt string `json:"prompt,omitempty"`
+	TaskID string `json:"taskId,omitempty"`
+	Index  int    `json:"index,omitempty"`
+	State  string `json:"state"`
+}
+
 func GetMessageId(prompt string, state string, types string) (string, error) {
 	mjImUrl := config.LoadConfig().MjImUrl
-	webhook := config.LoadConfig().Webhook
 
-	requestData := requestImg{
-		Prompt:          prompt,
-		Type:            types,
-		WebhookOverride: webhook,
-		State:           state,
-		IsAgent:         true,
+	requestData := Request{
+		Prompt: prompt,
+		Action: types,
+		State:  state,
 	}
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
@@ -50,7 +55,7 @@ func GetMessageId(prompt string, state string, types string) (string, error) {
 		panic(err)
 	}
 
-	messageId, ok := response["messageId"].(string)
+	messageId, ok := response["result"].(string)
 	if !ok {
 		return "", fmt.Errorf("unexpected data format in response: %v", response)
 	}
@@ -60,6 +65,7 @@ func GetMessageId(prompt string, state string, types string) (string, error) {
 
 type RequestData2 struct {
 	Prompt          string `json:"prompt,omitempty"`
+	Content         string `json:"content,omitempty"`
 	Type            string `json:"type"`
 	WebhookOverride string `json:"webhookOverride"`
 	State           string `json:"state"`
@@ -72,15 +78,13 @@ type RequestData2 struct {
 
 func GetEx(state string, types string, button string, taskId string) (string, error) {
 	mjExImUrl := config.LoadConfig().MjExUrl
-	webhook := config.LoadConfig().Webhook
 
 	requestData := RequestData2{
-		Type:            types,
-		WebhookOverride: webhook,
-		State:           state,
-		IsAgent:         true,
-		Button:          button,
-		TaskId:          taskId,
+		Type:    types,
+		State:   state,
+		Button:  button,
+		TaskId:  taskId,
+		Content: taskId + " " + button,
 	}
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
@@ -103,7 +107,7 @@ func GetEx(state string, types string, button string, taskId string) (string, er
 		panic(err)
 	}
 
-	messageId, ok := response["messageId"].(string)
+	messageId, ok := response["result"].(string)
 	if !ok {
 		return "", fmt.Errorf("unexpected data format in response: %v", response)
 	}

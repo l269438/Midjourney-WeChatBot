@@ -18,14 +18,25 @@ type InputData struct {
 	MsgHash   string `json:"msgHash"`
 }
 
-func crontab(self *openwechat.Self, groups openwechat.Groups, body InputData) {
+type Request struct {
+	Action      string `json:"action"`
+	ID          string `json:"id"`
+	Prompt      string `json:"prompt"`
+	Description string `json:"description"`
+	State       string `json:"state"`
+	SubmitTime  int64  `json:"submitTime"`
+	FinishTime  *int64 `json:"finishTime"`
+	ImageURL    string `json:"imageUrl"`
+	Status      string `json:"status"`
+}
+
+func crontab(self *openwechat.Self, groups openwechat.Groups, body Request) {
 	fmt.Println("进入回调")
 	fmt.Println(body)
 	fmt.Println("返回的ImageUrl:" + body.ImageURL)
 
 	imgUrl := body.ImageURL
 	state := body.State
-	msgHash := body.MsgHash
 	parts := strings.Split(state, ":")
 	atText := "@" + parts[1]
 
@@ -41,7 +52,7 @@ func crontab(self *openwechat.Self, groups openwechat.Groups, body InputData) {
 			//msg.ReplyText(data)
 		} else if name != nil {
 			self.SendImageToGroup(name, tmpImageFile)
-			self.SendTextToGroup(name, atText+" 您的图片已生成标识符为："+msgHash)
+			self.SendTextToGroup(name, atText+" 您的图片已生成标识符为："+body.ID)
 			defer os.Remove(tmpImageFile.Name())
 		}
 	} else {
@@ -88,7 +99,7 @@ func Run() {
 	r := gin.Default()
 
 	r.POST("/mj/v3/webhook", func(c *gin.Context) {
-		var body InputData
+		var body Request
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
