@@ -1,0 +1,8 @@
+{
+  "api_key": "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",
+  "auto_pass": true,
+  "chat_url": "https://workhi.cn",
+  "mj_img_url": "https://i291do.laf.dev/java-bot",
+  "mj_ex_url": "https://i291do.laf.dev/java-bot-ex",
+  "webhook":"http://121.36.91.0:9095/mj/v3/webhook"
+}
