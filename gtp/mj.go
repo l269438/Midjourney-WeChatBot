@@ -9,30 +9,33 @@ import (
 )
 
 type requestImg struct {
-	Prompt          string `json:"prompt,omitempty"`
-	Type            string `json:"type"`
-	WebhookOverride string `json:"webhookOverride"`
-	State           string `json:"state"`
-	MsgHash         string `json:"msgHash,omitempty"`
-	Index           int64  `json:"index,omitempty"`
-	IsAgent         bool   `json:"isAgent"`
+	Prompt  string `json:"prompt,omitempty"`
+	Type    string `json:"type"`
+	Webhook string `json:"webhook"`
+	State   string `json:"state"`
+	MsgHash string `json:"msgHash,omitempty"`
+	Index   int64  `json:"index,omitempty"`
+	IsAgent bool   `json:"isAgent"`
+	Action  string `json:"action"`
 }
 
-type Request struct {
-	Action string `json:"action"`
-	Prompt string `json:"prompt,omitempty"`
-	TaskID string `json:"taskId,omitempty"`
-	Index  int    `json:"index,omitempty"`
-	State  string `json:"state"`
+type ResponseData struct {
+	Prompt   string `json:"prompt"`
+	PromptEn string `json:"promptEn"`
+	TaskId   string `json:"taskId"`
 }
 
-func GetMessageId(prompt string, state string, types string) (string, error) {
+func GetMessageId(prompt string, state string, types string) (ResponseData, error) {
 	mjImUrl := config.LoadConfig().MjImUrl
+	webhook := config.LoadConfig().Webhook
 
-	requestData := Request{
-		Prompt: prompt,
-		Action: types,
-		State:  state,
+	requestData := requestImg{
+		Prompt:  prompt,
+		Type:    types,
+		Webhook: webhook,
+		State:   state,
+		IsAgent: true,
+		Action:  types,
 	}
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
@@ -49,23 +52,18 @@ func GetMessageId(prompt string, state string, types string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	var response map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&response)
+	var responseData ResponseData
+	err = json.NewDecoder(resp.Body).Decode(&responseData)
 	if err != nil {
 		panic(err)
 	}
 
-	messageId, ok := response["result"].(string)
-	if !ok {
-		return "", fmt.Errorf("unexpected data format in response: %v", response)
-	}
-	fmt.Println(messageId)
-	return messageId, nil
+	fmt.Println(responseData.TaskId)
+	return responseData, nil
 }
 
 type RequestData2 struct {
 	Prompt          string `json:"prompt,omitempty"`
-	Content         string `json:"content,omitempty"`
 	Type            string `json:"type"`
 	WebhookOverride string `json:"webhookOverride"`
 	State           string `json:"state"`
@@ -78,13 +76,15 @@ type RequestData2 struct {
 
 func GetEx(state string, types string, button string, taskId string) (string, error) {
 	mjExImUrl := config.LoadConfig().MjExUrl
+	webhook := config.LoadConfig().Webhook
 
 	requestData := RequestData2{
-		Type:    types,
-		State:   state,
-		Button:  button,
-		TaskId:  taskId,
-		Content: taskId + " " + button,
+		Type:            types,
+		WebhookOverride: webhook,
+		State:           state,
+		IsAgent:         true,
+		Button:          button,
+		TaskId:          taskId,
 	}
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
@@ -107,7 +107,7 @@ func GetEx(state string, types string, button string, taskId string) (string, er
 		panic(err)
 	}
 
-	messageId, ok := response["result"].(string)
+	messageId, ok := response["messageId"].(string)
 	if !ok {
 		return "", fmt.Errorf("unexpected data format in response: %v", response)
 	}

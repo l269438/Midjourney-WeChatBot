@@ -205,58 +205,66 @@ func (g *GroupMessageHandler) ReplyImg(msg *openwechat.Message) error {
 
 	state := group.NickName + ":" + groupSender.NickName
 	if strings.Contains(msg.Content, "mj") {
-		replaceText := "@midjourney"
-		requestText := strings.TrimSpace(strings.ReplaceAll(msg.Content, replaceText, ""))
-		requestText = strings.TrimSpace(strings.Replace(requestText, "mj", "", 1))
-		//messageId, err := gtp.GetMessageId(requestText)
-
-		messageId, err := gtp.GetMessageId(requestText, state, "IMAGINE")
-		fmt.Println("请求返回的" + messageId)
-		if err != nil {
-			log.Printf("gtp request error: %v \n", err)
-			msg.ReplyText("超时了 请稍后再试。")
-			return err
-		}
-		if messageId != "" {
-			fmt.Println("群名称" + group.NickName)
-			fmt.Println("用户名称" + groupSender.NickName)
-			msg.ReplyText(atText + "正在生成图片，请稍等...")
-		}
-	} else if strings.Contains(msg.Content, "ex") {
-		replaceText := "@" + sender.Self.NickName
-		requestText := strings.TrimSpace(strings.ReplaceAll(msg.Content, replaceText, ""))
-		requestText = strings.TrimSpace(strings.Replace(requestText, "ex", "", 1))
-
-		dataParts := strings.Split(requestText, ",")
-
-		if len(dataParts) >= 2 {
-			var buttonMessageId = strings.TrimSpace(dataParts[0])
-			var button = strings.TrimSpace(dataParts[1])
-
-			fmt.Printf("Button Message ID: %s\n", buttonMessageId)
-			fmt.Printf("Button: %s\n", button)
-
-			action, _, err := buttonAction(button)
-			if action == "error" {
-				msg.ReplyText("传入标识符有误")
-			}
-
-			messageId, err := gtp.GetEx(state, action, button, buttonMessageId)
-			fmt.Println("请求返回的" + messageId)
+		mjIndex := strings.Index(msg.Content, "mj")
+		if mjIndex >= 0 {
+			content := strings.TrimSpace(msg.Content[mjIndex+len("mj"):])
+			fmt.Println(content)
+			data, err := gtp.GetMessageId(content, state, "IMAGINE")
 			if err != nil {
 				log.Printf("gtp request error: %v \n", err)
 				msg.ReplyText("超时了 请稍后再试。")
 				return err
 			}
-			if messageId != "" {
+			prompt := data.Prompt
+			promptEn := data.PromptEn
+			if prompt != "" {
+				content := fmt.Sprintf(
+					"  好的，您稍等哈，我去给您画四张草图 \n"+
+						"\n"+
+						"🙋🏻 Prompt：%s \n"+
+						"\n"+
+						"✏️ PromptEn：%s  ",
+					prompt,
+					promptEn,
+				)
 				fmt.Println("群名称" + group.NickName)
 				fmt.Println("用户名称" + groupSender.NickName)
-				msg.ReplyText(atText + "正在生成图片，请稍等...")
+				msg.ReplyText(atText + content)
 			}
-		} else {
-			fmt.Println("Invalid input format.")
 		}
+	} else if strings.Contains(msg.Content, "ex") {
+		mjIndex := strings.Index(msg.Content, "ex")
+		if mjIndex >= 0 {
+			content := strings.TrimSpace(msg.Content[mjIndex+len("ex"):])
+			dataParts := strings.Split(content, ",")
+			if len(dataParts) >= 2 {
+				var buttonMessageId = strings.TrimSpace(dataParts[0])
+				var button = strings.TrimSpace(dataParts[1])
 
+				fmt.Printf("Button Message ID: %s\n", buttonMessageId)
+				fmt.Printf("Button: %s\n", button)
+
+				action, _, err := buttonAction(button)
+				if action == "error" {
+					msg.ReplyText("传入标识符有误")
+				}
+
+				messageId, err := gtp.GetEx(state, action, button, buttonMessageId)
+				fmt.Println("请求返回的" + messageId)
+				if err != nil {
+					log.Printf("gtp request error: %v \n", err)
+					msg.ReplyText("超时了 请稍后再试。")
+					return err
+				}
+				if messageId != "" {
+					fmt.Println("群名称" + group.NickName)
+					fmt.Println("用户名称" + groupSender.NickName)
+					msg.ReplyText(atText + "正在生成图片，请稍等...")
+				}
+			} else {
+				fmt.Println("Invalid input format.")
+			}
+		}
 	} else {
 		g.ReplyText(msg)
 	}

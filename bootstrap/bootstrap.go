@@ -12,31 +12,40 @@ import (
 )
 
 type InputData struct {
-	ImageURL  string `json:"imageUrl"`
+	//ImageURL  string `json:"imageUrl"`
+	ImageURL  string `json:"uri"`
 	MessageID string `json:"messageId"`
 	State     string `json:"state"`
 	MsgHash   string `json:"msgHash"`
+	Prompt    string `json:"prompt"`
+	PromptEn  string `json:"promptEn"`
+	Id        string `json:"id"`
+	Action    string `json:"action"`
 }
 
-type Request struct {
-	Action      string `json:"action"`
-	ID          string `json:"id"`
-	Prompt      string `json:"prompt"`
-	Description string `json:"description"`
-	State       string `json:"state"`
-	SubmitTime  int64  `json:"submitTime"`
-	FinishTime  *int64 `json:"finishTime"`
-	ImageURL    string `json:"imageUrl"`
-	Status      string `json:"status"`
+type ResponseData struct {
+	Data struct {
+		ImageURL  string `json:"uri"`
+		MessageID string `json:"messageId"`
+		State     string `json:"state"`
+		MsgHash   string `json:"hash"`
+		Prompt    string `json:"prompt"`
+		PromptEn  string `json:"promptEn"`
+		Id        string `json:"taskId"`
+		Action    string `json:"action"`
+	} `json:"data"`
 }
 
-func crontab(self *openwechat.Self, groups openwechat.Groups, body Request) {
+func crontab(self *openwechat.Self, groups openwechat.Groups, body ResponseData) {
 	fmt.Println("进入回调")
 	fmt.Println(body)
-	fmt.Println("返回的ImageUrl:" + body.ImageURL)
+	promptEn := body.Data.PromptEn
+	prompt := body.Data.Prompt
 
-	imgUrl := body.ImageURL
-	state := body.State
+	imgUrl := body.Data.ImageURL
+	state := body.Data.State
+	action := body.Data.Action
+	id := body.Data.MessageID
 	parts := strings.Split(state, ":")
 	atText := "@" + parts[1]
 
@@ -51,8 +60,29 @@ func crontab(self *openwechat.Self, groups openwechat.Groups, body Request) {
 			log.Printf("download image error: %v \n", err)
 			//msg.ReplyText(data)
 		} else if name != nil {
-			self.SendImageToGroup(name, tmpImageFile)
-			self.SendTextToGroup(name, atText+" 您的图片已生成标识符为："+body.ID)
+			if action == "UPSCALE" {
+				self.SendImageToGroup(name, tmpImageFile)
+				result := "✅绘制成功\n" +
+					"\n"
+				self.SendTextToGroup(name, atText+result)
+			} else {
+				self.SendImageToGroup(name, tmpImageFile)
+				result := "✅绘制成功\n" +
+					"📎任务ID: " + id + "\n" +
+					"\n" +
+					"🙋🏻 Prompt: " + prompt + "\n" +
+					"\n" +
+					"✏️ PromptEn: " + promptEn + "\n" +
+					"\n" +
+					"🪄 放大：这里有四幅草图，请用 U+编号来告诉我您喜欢哪一张。例如，第一张为U1。我将会根据您的选择画出更精美的版本。" +
+					"\n" +
+					"🪄 变换：如果您对所有的草图都不太满意，但是对其中某一张构图还可以，可以用 V+编号来告诉我，我会画出类似的四幅草图供您选择" +
+					"\n" +
+					"✏ 具体操作：[ex 编号,操作]，比如 ex 0234495019546343,U1"
+				//self.SendTextToGroup(name, atText+" 您的图片已生成标识符为："+msgHash)
+				self.SendTextToGroup(name, atText+result)
+			}
+
 			defer os.Remove(tmpImageFile.Name())
 		}
 	} else {
@@ -99,7 +129,7 @@ func Run() {
 	r := gin.Default()
 
 	r.POST("/mj/v3/webhook", func(c *gin.Context) {
-		var body Request
+		var body ResponseData
 		if err := c.ShouldBindJSON(&body); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
