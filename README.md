@@ -1,6 +1,8 @@
 # ChatGPT-MidJourney-WeChatbot
 
 ## 项目介绍
+参考项目:https://github.com/djun/wechatbot
+
 使用在微信群中使用ChatGPT-MidJourney微信机器人,使用效果如下图所示:
 
 ![](./pic/img.png)
