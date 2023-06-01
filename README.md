@@ -1,14 +1,25 @@
 # ChatGPT-MidJourney-WeChatbot
-
-## 项目介绍
 参考项目:https://github.com/djun/wechatbot
 
+
+## 项目介绍
 使用在微信群中使用ChatGPT-MidJourney微信机器人,使用效果如下图所示:
 
 ![](./pic/img.png)
 ![](./pic/img_1.png)
 
+## 项目体验
 
+| QQ频道                                                          | 微信公众号                                                              |                                微信号                                 |
+|:--------------------------------------------------------------|:-------------------------------------------------------------------|:------------------------------------------------------------------:|
+| <img src="./pic/qq.png" alt="Image" width="200" height="200"> | <img src="./pic/wechat2.png" alt="Image" width="300" height="100"> | <img src="./pic/wechat3.png" alt="Image" width="200" height="200"> |
+
+
+## MidJourney服务接入
+
+### 参考下面的步骤接入MidJourney服务
+https://github.com/l269438/Midjourney-api
+#### 接入后 切换当前项目的laf分支
 
 ## 使用介绍
 1.使用MidJourney 生成图片需要@我们的机器人 + mj +咒语,例如:
@@ -48,7 +59,7 @@
   "auto_pass": true,
   // 请求chatgpt的url
   "chat_url": "",
-  // 请求midjourney的生成图片的url
+  // 请求midjourney的生成图片的url 
   "mj_img_url": "",
   // 请求midjourney的扩展图片的url
   "mj_ex_url": "",
@@ -61,17 +72,17 @@
 1.如果不需要使用midjourney的功能，可以不配置mj_img_url,mj_ex_url,webhook
 2.api_key获取方式请参考:https://platform.openai.com/overview
 3.chat_url默认为https://api.openai.com/ 被墙的话可以使用代理
-4.mj_img_url,mj_ex_url为midjourney的url,需要自己搭建midjourney服务
+4.mj_img_url,mj_ex_url为midjourney的url,需要自己搭建midjourney服务 搭建https://github.com/l269438/Midjourney-api
 5.webhook为midjourney生成图后回调的url 需要填当前服务器的ip+端口+/mj/v3/webhook。例如: http://127.0.0.1:9095/mj/v3/webhook
 ```
 
 ## 运行
 >在windows下,Goland中运行main.go即可
-> 
+>
 >或在项目根目录下,执行```go run main.go```
 
 >在linux下,在项目根目录下,执行```go build main.go```生成可执行文件,然后执行```./main```
-> 
+>
 > 或在项目根目录下,执行```go run main.go```
 
 最后复制网址到浏览器中打开,扫码登录即可
@@ -84,7 +95,4 @@ nohup ./main &
 或
 nohup go run main.go &
 ```
-## 最后
-如果有问题,可以联系我,微信号:```chat22223```
 
-<img src="./pic/wechat.png" alt="Image" width="400" height="400">
