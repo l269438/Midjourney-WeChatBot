@@ -8,7 +8,7 @@
 ![](./pic/img.png)
 ![](./pic/img_1.png)
 
-#视频教程 https://www.bilibili.com/video/BV1Km4y1i7Zo/
+# 视频教程 https://www.bilibili.com/video/BV1Km4y1i7Zo/
 
 ## 项目体验
 
