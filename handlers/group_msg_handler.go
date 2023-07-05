@@ -190,10 +190,10 @@ func (g *GroupMessageHandler) ReplyImg(msg *openwechat.Message) error {
 		msg.ReplyText("请求太快了，请在一分钟后再试。")
 		return nil
 	}
-	if containsBadWords(msg.Content, badWords) {
-		msg.ReplyText("您的消息中包含敏感词，请修改后再发送。")
-		return nil
-	}
+	// if containsBadWords(msg.Content, badWords) {
+	// 	msg.ReplyText("您的消息中包含敏感词，请修改后再发送。")
+	// 	return nil
+	// }
 	maxInt := rand.New(rand.NewSource(time.Now().UnixNano())).Intn(5)
 	time.Sleep(time.Duration(maxInt+1) * time.Second)
 	// 接收群消息
